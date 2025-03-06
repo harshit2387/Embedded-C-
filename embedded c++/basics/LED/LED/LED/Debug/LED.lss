@@ -3,29 +3,29 @@ LED.elf:     file format elf32-avr
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .data         00000000  00800100  00800100  0000012e  2**0
+  0 .data         00000000  00800100  00800100  00000134  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  1 .text         000000da  00000000  00000000  00000054  2**1
+  1 .text         000000e0  00000000  00000000  00000054  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .comment      00000030  00000000  00000000  0000012e  2**0
+  2 .comment      00000030  00000000  00000000  00000134  2**0
                   CONTENTS, READONLY
-  3 .note.gnu.avr.deviceinfo 00000040  00000000  00000000  00000160  2**2
+  3 .note.gnu.avr.deviceinfo 00000040  00000000  00000000  00000164  2**2
                   CONTENTS, READONLY
-  4 .debug_aranges 00000028  00000000  00000000  000001a0  2**0
+  4 .debug_aranges 00000028  00000000  00000000  000001a4  2**0
                   CONTENTS, READONLY, DEBUGGING
-  5 .debug_info   0000079d  00000000  00000000  000001c8  2**0
+  5 .debug_info   0000079d  00000000  00000000  000001cc  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_abbrev 000006d7  00000000  00000000  00000965  2**0
+  6 .debug_abbrev 000006d7  00000000  00000000  00000969  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_line   000002a9  00000000  00000000  0000103c  2**0
+  7 .debug_line   000002ad  00000000  00000000  00001040  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_frame  00000034  00000000  00000000  000012e8  2**2
+  8 .debug_frame  00000034  00000000  00000000  000012f0  2**2
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_str    000003c8  00000000  00000000  0000131c  2**0
+  9 .debug_str    000003c8  00000000  00000000  00001324  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_loc    000000dc  00000000  00000000  000016e4  2**0
+ 10 .debug_loc    000000dc  00000000  00000000  000016ec  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_ranges 00000018  00000000  00000000  000017c0  2**0
+ 11 .debug_ranges 00000018  00000000  00000000  000017c8  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -65,8 +65,8 @@ Disassembly of section .text:
   6e:	d8 e0       	ldi	r29, 0x08	; 8
   70:	de bf       	out	0x3e, r29	; 62
   72:	cd bf       	out	0x3d, r28	; 61
-  74:	0e 94 64 00 	call	0xc8	; 0xc8 <main>
-  78:	0c 94 6b 00 	jmp	0xd6	; 0xd6 <_exit>
+  74:	0e 94 67 00 	call	0xce	; 0xce <main>
+  78:	0c 94 6e 00 	jmp	0xdc	; 0xdc <_exit>
 
 0000007c <__bad_interrupt>:
   7c:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
@@ -79,7 +79,7 @@ Disassembly of section .text:
 
 void switchon(int n) {
   80:	ac 01       	movw	r20, r24
-	DDRB = (1 << LED);
+	DDRB = (1 << LED); // Set LED pin as an output
   82:	84 e0       	ldi	r24, 0x04	; 4
   84:	84 b9       	out	0x04, r24	; 4
 
@@ -125,32 +125,41 @@ void switchon(int n) {
 #define LED PB2
 
 void switchon(int n) {
-	DDRB = (1 << LED);
+	DDRB = (1 << LED); // Set LED pin as an output
 
 	for (int i = 0; i < n; ++i) {
   c0:	2f 5f       	subi	r18, 0xFF	; 255
   c2:	3f 4f       	sbci	r19, 0xFF	; 255
   c4:	e2 cf       	rjmp	.-60     	; 0x8a <_Z8switchoni+0xa>
-  c6:	08 95       	ret
+		PORTB &= ~(1 << LED); // Turn off LED
+		_delay_ms(1000);
+	}
 
-000000c8 <main>:
+	// Ensure the LED remains off after finishing the loop
+	PORTB &= ~(1 << LED);
+  c6:	85 b1       	in	r24, 0x05	; 5
+  c8:	8b 7f       	andi	r24, 0xFB	; 251
+  ca:	85 b9       	out	0x05, r24	; 5
+  cc:	08 95       	ret
+
+000000ce <main>:
 int main(void) {
 	int n;
 	// Replace this with a suitable method for input if you're using a serial port or other input methods
 	n = 5; // Example value, you can change this
 
 	switchon(n);
-  c8:	85 e0       	ldi	r24, 0x05	; 5
-  ca:	90 e0       	ldi	r25, 0x00	; 0
-  cc:	0e 94 40 00 	call	0x80	; 0x80 <_Z8switchoni>
+  ce:	85 e0       	ldi	r24, 0x05	; 5
+  d0:	90 e0       	ldi	r25, 0x00	; 0
+  d2:	0e 94 40 00 	call	0x80	; 0x80 <_Z8switchoni>
 	return 0;
 }
-  d0:	80 e0       	ldi	r24, 0x00	; 0
-  d2:	90 e0       	ldi	r25, 0x00	; 0
-  d4:	08 95       	ret
+  d6:	80 e0       	ldi	r24, 0x00	; 0
+  d8:	90 e0       	ldi	r25, 0x00	; 0
+  da:	08 95       	ret
 
-000000d6 <_exit>:
-  d6:	f8 94       	cli
+000000dc <_exit>:
+  dc:	f8 94       	cli
 
-000000d8 <__stop_program>:
-  d8:	ff cf       	rjmp	.-2      	; 0xd8 <__stop_program>
+000000de <__stop_program>:
+  de:	ff cf       	rjmp	.-2      	; 0xde <__stop_program>

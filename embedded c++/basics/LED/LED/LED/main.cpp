@@ -1,17 +1,10 @@
-/*
- * LED.cpp
- *
- * Created: 20-02-2025 19:41:16
- * Author : sharm
- */ 
-
 #include <avr/io.h>
 #include <util/delay.h>
 
 #define LED PB2
 
 void switchon(int n) {
-	DDRB = (1 << LED);
+	DDRB = (1 << LED); // Set LED pin as an output
 
 	for (int i = 0; i < n; ++i) {
 		PORTB |= (1 << LED); // Turn on LED
@@ -19,6 +12,9 @@ void switchon(int n) {
 		PORTB &= ~(1 << LED); // Turn off LED
 		_delay_ms(1000);
 	}
+
+	// Ensure the LED remains off after finishing the loop
+	PORTB &= ~(1 << LED);
 }
 
 int main(void) {
@@ -29,5 +25,3 @@ int main(void) {
 	switchon(n);
 	return 0;
 }
-
-
